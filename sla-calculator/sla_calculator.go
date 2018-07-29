@@ -259,6 +259,9 @@ func (u *UptimeSLACalculator) CalculateSLA2Availability() float64 {
 	// correcting open end
 	for i := len(timestamps) - 1; (uptimeValues[i] <= 0) && (i >= 0); i-- {
 		if exceptions[i] {
+            if i == 0 {
+                break
+            }
 			continue
 		}
 		countedVals[i] = 0
