@@ -124,11 +124,11 @@ var allUpUptimeSeriesData = []UptimeData{
 }
 
 var (
-	expetedSNMPAvailability               float64 = 0.58
-	expetedUptimeAvailability             float64 = 0.6516
-	expetedSLA1Availability               float64 = 0.6774
-	expetedSLA2Availability               float64 = 0.7419
-    expetedSLA2AvailabilityWithException  float64 = 0.9
+	expetedSNMPAvailability              float64 = 0.58
+	expetedUptimeAvailability            float64 = 0.6516
+	expetedSLA1Availability              float64 = 0.6774
+	expetedSLA2Availability              float64 = 0.7419
+	expetedSLA2AvailabilityWithException float64 = 0.9
 
 	expectedAllDown float64 = 0.0
 	expectedAllUp   float64 = 1.0
@@ -254,19 +254,19 @@ func TestUptimeSLACalculator(t *testing.T) {
 				t.Errorf("The calculated SLA 2 Availability value is %v, instead of %v", sla2Avai, expected)
 			}
 		})
-        t.Run("CalculateSLA2Availability: All Down with Exception 2", func(t *testing.T) {
-            exceptions[len(exceptions)-1] = false
-            exceptions[0] = true
-            calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
-            if err != nil {
-                t.Fatalf("An Error should not be accoured: %v", err)
-            }
-            expected := 0.0333
-            sla2Avai := calc.CalculateSLA2Availability()
-            if math.Abs(sla2Avai-expected) >= ACCURACY {
-                t.Errorf("The calculated SLA 2 Availability value is %v, instead of %v", sla2Avai, expected)
-            }
-        })
+		t.Run("CalculateSLA2Availability: All Down with Exception 2", func(t *testing.T) {
+			exceptions[len(exceptions)-1] = false
+			exceptions[0] = true
+			calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+			if err != nil {
+				t.Fatalf("An Error should not be accoured: %v", err)
+			}
+			expected := 0.0333
+			sla2Avai := calc.CalculateSLA2Availability()
+			if math.Abs(sla2Avai-expected) >= ACCURACY {
+				t.Errorf("The calculated SLA 2 Availability value is %v, instead of %v", sla2Avai, expected)
+			}
+		})
 		t.Run("GetUptimeStateSeriesData: All Down", func(t *testing.T) {
 			states := calc.GetUptimeStateSeriesData()
 			stateLen := map[string]int{}
