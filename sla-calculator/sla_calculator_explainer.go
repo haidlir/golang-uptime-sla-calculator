@@ -120,3 +120,70 @@ func (u *UptimeSLACalculator) CalcBakti1Uptime() *Bakti1Availability {
 	}
 	return &baktiAvailability
 }
+
+// CalcBakti1UptimeTrimmed returns the SLA and explains the status of service refers to uptime data from BAKTI series.
+func (u *UptimeSLACalculator) CalcBakti1UptimeTrimmed(sTrimDate, eTrimDate int64, isFinalCalc bool) *Bakti1Availability {
+	chronologies := u.ExplainBakti1Uptime()
+	trimmedChronology := trimChronology(chronologies, sTrimDate, eTrimDate, isFinalCalc)
+	// Calc Availability
+	periodDuration := eTrimDate - sTrimDate
+	var linkFailureDuration int64
+	var openDuration int64
+	for _, chronology := range trimmedChronology {
+		if chronology.Status == BaktiLinkFailure {
+			linkFailureDuration += chronology.EndTimestamps - chronology.StartTimestamps
+		} else if chronology.Status == BaktiOpen {
+			openDuration += chronology.EndTimestamps - chronology.StartTimestamps
+		}
+	}
+	availability := 1.0 - (float64(linkFailureDuration+openDuration) / float64(periodDuration))
+	baktiAvailability := Bakti1Availability{
+		Availability:        availability,
+		LinkFailureDuration: linkFailureDuration,
+		OpenDuration:        openDuration,
+		Chronologies:        trimmedChronology,
+	}
+	return &baktiAvailability
+	// return nil
+}
+
+func trimChronology(chronologies []Bakti1UptimeChronology, sTrimDate, eTrimDate int64, isFinalCalc bool) []Bakti1UptimeChronology {
+	iStart := 0
+	iEnd := len(chronologies)
+	// Check frontside
+	for i := 0; i < len(chronologies); i++ {
+		if chronologies[i].StartTimestamps >= sTrimDate {
+			iStart = i
+			break
+		}
+	}
+	// Check backside
+	for i := len(chronologies) - 1; i >= 0; i-- {
+		if chronologies[i].EndTimestamps <= eTrimDate {
+			iEnd = i
+			break
+		}
+	}
+	chronologies[iStart].StartTimestamps = sTrimDate
+	chronologies[iEnd].EndTimestamps = eTrimDate
+	newChronologies := chronologies[iStart : iEnd+1]
+	// Normalize Open to PowerFailure if isFinalCalc true
+	if !isFinalCalc {
+		return newChronologies
+	}
+	for i := 0; i < len(newChronologies); i++ {
+		if newChronologies[i].Status != BaktiOpen {
+			break
+		} else {
+			newChronologies[i].Status = BaktiPowerFailure
+		}
+	}
+	for i := len(newChronologies) - 1; i >= 0; i-- {
+		if newChronologies[i].Status != BaktiOpen {
+			break
+		} else {
+			newChronologies[i].Status = BaktiPowerFailure
+		}
+	}
+	return newChronologies
+}
