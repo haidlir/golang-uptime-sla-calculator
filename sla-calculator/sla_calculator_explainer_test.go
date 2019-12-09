@@ -173,3 +173,110 @@ func TestCalcBakti1Uptime(t *testing.T) {
 		}
 	}
 }
+
+func TestCalcBakti1UptimeTrimmed(t *testing.T) {
+	// uptimeBaktiSeriesData
+	{
+		// Trim Time
+		var startTrimmedTime int64 = 10250
+		var endTrimmedTime int64 = 12650
+		endTime := endTimeBakti
+		uptimeVals := []int{}
+		timestamps := []int64{}
+		exceptions := []bool{}
+		for _, val := range uptimeBaktiSeriesData {
+			uptimeVals = append(uptimeVals, val.Value)
+			timestamps = append(timestamps, val.Timestamp)
+			exceptions = append(exceptions, val.Exception)
+		}
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		if err != nil {
+			t.Fatalf("An Error should not be accoured: %v", err)
+		}
+		bakti1Availability := calc.CalcBakti1UptimeTrimmed(startTrimmedTime, endTrimmedTime, false)
+		if bakti1Availability == nil {
+			t.Fatalf("It should be not nil")
+		}
+		if math.Abs(bakti1Availability.Availability-0.81) > ACCURACY {
+			t.Errorf("Availability for uptime data is %.2f instead of 0.81", bakti1Availability.Availability)
+		}
+	}
+	// AllUp
+	{
+		// Trim Time
+		var startTrimmedTime int64 = 10550
+		var endTrimmedTime int64 = 11450
+		endTime := endTimeBakti
+		uptimeVals := []int{}
+		timestamps := []int64{}
+		exceptions := []bool{}
+		for _, val := range uptimeBaktiSeriesData {
+			uptimeVals = append(uptimeVals, val.Value)
+			timestamps = append(timestamps, val.Timestamp)
+			exceptions = append(exceptions, val.Exception)
+		}
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		if err != nil {
+			t.Fatalf("An Error should not be accoured: %v", err)
+		}
+		bakti1Availability := calc.CalcBakti1UptimeTrimmed(startTrimmedTime, endTrimmedTime, false)
+		if bakti1Availability == nil {
+			t.Fatalf("It should be not nil")
+		}
+		if math.Abs(bakti1Availability.Availability-1.0) > ACCURACY {
+			t.Errorf("Availability for uptime data is %.2f instead of 1.0", bakti1Availability.Availability)
+		}
+	}
+	// Final no Open
+	{
+		// Trim Time
+		var startTrimmedTime int64 = 10000
+		var endTrimmedTime int64 = 13000
+		endTime := endTimeBakti
+		uptimeVals := []int{}
+		timestamps := []int64{}
+		exceptions := []bool{}
+		for _, val := range uptimeBaktiSeriesData {
+			uptimeVals = append(uptimeVals, val.Value)
+			timestamps = append(timestamps, val.Timestamp)
+			exceptions = append(exceptions, val.Exception)
+		}
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		if err != nil {
+			t.Fatalf("An Error should not be accoured: %v", err)
+		}
+		bakti1Availability := calc.CalcBakti1UptimeTrimmed(startTrimmedTime, endTrimmedTime, true)
+		if bakti1Availability == nil {
+			t.Fatalf("It should be not nil")
+		}
+		if bakti1Availability.OpenDuration != 0 {
+			t.Fatalf("It should be zero")
+		}
+	}
+	// With Open
+	{
+		// Trim Time
+		var startTrimmedTime int64 = 10000
+		var endTrimmedTime int64 = 13000
+		endTime := endTimeBakti
+		uptimeVals := []int{}
+		timestamps := []int64{}
+		exceptions := []bool{}
+		for _, val := range uptimeBaktiSeriesData {
+			uptimeVals = append(uptimeVals, val.Value)
+			timestamps = append(timestamps, val.Timestamp)
+			exceptions = append(exceptions, val.Exception)
+		}
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		if err != nil {
+			t.Fatalf("An Error should not be accoured: %v", err)
+		}
+		bakti1Availability := calc.CalcBakti1UptimeTrimmed(startTrimmedTime, endTrimmedTime, false)
+		if bakti1Availability == nil {
+			t.Fatalf("It should be not nil")
+		}
+		if bakti1Availability.OpenDuration == 0 {
+			t.Fatalf("It should be not zero")
+		}
+	}
+}
