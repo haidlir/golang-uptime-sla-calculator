@@ -129,11 +129,26 @@ func (u *UptimeSLACalculator) CalcBakti1UptimeTrimmed(sTrimDate, eTrimDate int64
 	periodDuration := eTrimDate - sTrimDate
 	var linkFailureDuration int64
 	var openDuration int64
+	isLinkFailure := false
+	var tempLinkFailureStartTime, tempLinkFailureEndTime int64
 	for _, chronology := range trimmedChronology {
 		if chronology.Status == BaktiLinkFailure {
-			linkFailureDuration += chronology.EndTimestamps - chronology.StartTimestamps
+			if !isLinkFailure {
+				isLinkFailure = true
+				tempLinkFailureStartTime = chronology.StartTimestamps
+			}
+			tempLinkFailureEndTime = chronology.EndTimestamps
 		} else if chronology.Status == BaktiOpen {
 			openDuration += chronology.EndTimestamps - chronology.StartTimestamps
+		} else {
+			if isLinkFailure {
+				isLinkFailure = false
+				lastLinkFailureDuration := tempLinkFailureEndTime - tempLinkFailureStartTime
+				if lastLinkFailureDuration > 300 { // 5 menit toleransi dari BAKTI
+					linkFailureDuration += lastLinkFailureDuration - 300
+				}
+				tempLinkFailureStartTime, tempLinkFailureEndTime = 0, 0
+			}
 		}
 	}
 	availability := 1.0 - (float64(linkFailureDuration+openDuration) / float64(periodDuration))
