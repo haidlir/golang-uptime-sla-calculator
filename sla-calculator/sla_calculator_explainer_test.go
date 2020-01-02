@@ -197,8 +197,8 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 		if bakti1Availability == nil {
 			t.Fatalf("It should be not nil")
 		}
-		if math.Abs(bakti1Availability.Availability-0.81) > ACCURACY {
-			t.Errorf("Availability for uptime data is %.2f instead of 0.81", bakti1Availability.Availability)
+		if math.Abs(bakti1Availability.Availability-1.00) > ACCURACY {
+			t.Errorf("Availability for uptime data is %.2f instead of 1.00", bakti1Availability.Availability)
 		}
 	}
 	// AllUp
