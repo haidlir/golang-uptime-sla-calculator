@@ -280,3 +280,64 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 		}
 	}
 }
+
+func TestCalcBaktiSqf(t *testing.T) {
+	bakti1ChronologyInput := [][]interface{}{
+		[]interface{}{1546300800, 1546301100, slacalc.BaktiRunning, 1900, 0, 0},
+		[]interface{}{1546301100, 1546301400, slacalc.BaktiRunning, 2200, 0, 0},
+		[]interface{}{1546301400, 1546301700, slacalc.BaktiRunning, 2500, 0, 0},
+		[]interface{}{1546301700, 1546302000, slacalc.BaktiRunning, 2800, 0, 0},
+		[]interface{}{1546302000, 1546302300, slacalc.BaktiRunning, 3100, 0, 0},
+		[]interface{}{1546302300, 1546302600, slacalc.BaktiLinkFailure, 0, 300, 200},
+		[]interface{}{1546302600, 1546302900, slacalc.BaktiLinkFailure, 0, 300, 300},
+		[]interface{}{1546302900, 1546303200, slacalc.BaktiRunning, 4000, 0, 0},
+		[]interface{}{1546303200, 1546303500, slacalc.BaktiLinkFailure, 0, 300, 100},
+		[]interface{}{1546303500, 1546303800, slacalc.BaktiLinkFailure, 0, 300, 300},
+		[]interface{}{1546303800, 1546304100, slacalc.BaktiLinkFailure, 0, 300, 300},
+		[]interface{}{1546304100, 1546304400, slacalc.BaktiPowerFailure, 0, 0, 0},
+		[]interface{}{1546304400, 1546304700, slacalc.BaktiRunning, 0, 0, 0},
+		[]interface{}{1546304700, 1546305000, slacalc.BaktiRunning, 300, 0, 0},
+		[]interface{}{1546305000, 1546305300, slacalc.BaktiLinkFailure, 600, 300, 150},
+		[]interface{}{1546305300, 1546305600, slacalc.BaktiRunning, 900, 0, 0},
+		[]interface{}{1546305600, 1546305900, slacalc.BaktiOpen, 0, 300, 300},
+		[]interface{}{1546305900, 1546306200, slacalc.BaktiOpen, 0, 300, 300},
+	}
+	bakti1UptimeChronologies := []slacalc.Bakti1UptimeChronology{}
+	for _, input := range bakti1ChronologyInput {
+		chronology := slacalc.Bakti1UptimeChronology{
+			StartTimestamps:     int64(input[0].(int)),
+			EndTimestamps:       int64(input[1].(int)),
+			Status:              input[2].(int),
+			UptimeValue:         int64(input[3].(int)),
+			LinkFailureDuration: int64(input[4].(int)),
+			RestitutionDuration: int64(input[5].(int)),
+		}
+		bakti1UptimeChronologies = append(bakti1UptimeChronologies, chronology)
+	}
+	sqfValues := []float64{8, 10, 8, 9, 9, 7.1, 6, 9, 4, 2, 1, 9, 9, 9, 5, 5, 9, 9}
+	sqfTimestamps := []int64{1546300800, 1546301100, 1546301400, 1546301700, 1546302000,
+		1546302300, 1546302600, 1546302900, 1546303200, 1546303500, 1546303800, 1546304100,
+		1546304400, 1546304700, 1546305000, 1546305300, 1546305600, 1546305900}
+	var rainQuota int64 = 350
+	baktiSqfAvailability, remainder, err := slacalc.CalcBaktiSqf(bakti1UptimeChronologies, sqfTimestamps, sqfValues, rainQuota)
+	if err != nil {
+		t.Fatalf("it should be OK")
+	}
+	if remainder != 0 {
+		t.Errorf("the remainder should be 0")
+	}
+	if math.Abs(baktiSqfAvailability.Availability-0.740740) > ACCURACY {
+		t.Errorf("the availability should be 0.740740 instead of %v", baktiSqfAvailability.Availability)
+	}
+	if baktiSqfAvailability.RestitutionDuration != 800 {
+		t.Errorf("the restitution duration should be 800 instead of %v", baktiSqfAvailability.RestitutionDuration)
+	}
+	if baktiSqfAvailability.RainQuotaUsed != 350 {
+		t.Errorf("the rain quota should be 300 instead of %v", baktiSqfAvailability.RainQuotaUsed)
+	}
+	// Test error on validation
+	_, _, err = slacalc.CalcBaktiSqf(bakti1UptimeChronologies, sqfTimestamps[:len(sqfTimestamps)-2], sqfValues[:len(sqfValues)-2], rainQuota)
+	if err == nil {
+		t.Fatalf("it should be NOK")
+	}
+}
