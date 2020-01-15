@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	ACCURACY = 0.01
+	ACCURACY = 0.001
 )
 
 type UptimeData struct {

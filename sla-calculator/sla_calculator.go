@@ -148,12 +148,12 @@ func transformToSpreadedUptime(startTime, endTime int64, timestamps []int64, upt
 	for i := range deltaTimeStamps {
 		if countedVals[i] > deltaTimeStamps[i] {
 			for j := i; countedVals[j] > deltaTimeStamps[j]; j-- {
-                if j == 0 {
-                    if countedVals[j] > deltaTimeStamps[j] {
-                        countedVals[j] = deltaTimeStamps[j]
-                    }
-                    break
-                }
+				if j == 0 {
+					if countedVals[j] > deltaTimeStamps[j] {
+						countedVals[j] = deltaTimeStamps[j]
+					}
+					break
+				}
 				countedVals[j-1] = countedVals[j] - deltaTimeStamps[j]
 				countedVals[j] = deltaTimeStamps[j]
 			}
@@ -259,9 +259,9 @@ func (u *UptimeSLACalculator) CalculateSLA2Availability() float64 {
 	// correcting open end
 	for i := len(timestamps) - 1; (uptimeValues[i] <= 0) && (i >= 0); i-- {
 		if exceptions[i] {
-            if i == 0 {
-                break
-            }
+			if i == 0 {
+				break
+			}
 			continue
 		}
 		countedVals[i] = 0
