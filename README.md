@@ -32,6 +32,9 @@ type UptimeData struct {
 var (
     startTime int64 = 10000
     endTime int64 = 13000
+
+	// toleranceDeltaRatio is used to give calculation tolerance when there is a delta uptime data glitch.
+    // See https://github.com/haidlir/golang-uptime-sla-calculator/issues/5 for more detail explanation.
 	toleranceDeltaRatio float64 = 0.9
 )
 
