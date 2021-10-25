@@ -58,7 +58,7 @@ func TestExplainBakti1Uptime(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -114,7 +114,7 @@ func TestCalcBakti1Uptime(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -137,7 +137,7 @@ func TestCalcBakti1Uptime(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(timestamps[0], endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(timestamps[0], endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -160,7 +160,7 @@ func TestCalcBakti1Uptime(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -189,7 +189,7 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -215,7 +215,7 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -241,7 +241,7 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -267,7 +267,7 @@ func TestCalcBakti1UptimeTrimmed(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTimeBakti, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}

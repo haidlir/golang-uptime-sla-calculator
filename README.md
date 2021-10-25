@@ -32,6 +32,7 @@ type UptimeData struct {
 var (
     startTime int64 = 10000
     endTime int64 = 13000
+	toleranceDeltaRatio float64 = 0.9
 )
 
 var uptimeSeriesData = []UptimeData{
@@ -78,7 +79,7 @@ func main() {
         exceptions = append(exceptions, val.Exception)
     }
     // Create calculator object
-    calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+    calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
     if err != nil {
         log.Fatalf("An Error should not be accoured: %v", err)
     }
