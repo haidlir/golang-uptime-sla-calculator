@@ -17,14 +17,15 @@ const (
 
 // UptimeSLACalculator calculates Uptime SLA parameters based on specified formulas.
 type UptimeSLACalculator struct {
-	uptimeValues []int64
-	timestamps   []int64
-	exceptions   []bool
-	startTime    int64
-	endTime      int64
+	uptimeValues        []int64
+	timestamps          []int64
+	exceptions          []bool
+	startTime           int64
+	endTime             int64
+	toleranceDeltaRatio float64
 }
 
-func checkArguments(startTime, endTime int64, timestamps []int64, uptimeValues []int, exceptions []bool) error {
+func checkArguments(startTime, endTime int64, timestamps []int64, uptimeValues []int, toleranceDeltaRatio float64, exceptions []bool) error {
 	// check start and end time
 	if startTime < 0 || endTime < 0 {
 		return fmt.Errorf("Start or End time is less than 0 (-).")
@@ -37,6 +38,9 @@ func checkArguments(startTime, endTime int64, timestamps []int64, uptimeValues [
 	}
 	if endTime < timestamps[len(timestamps)-1] {
 		return fmt.Errorf("End time is less than the last timestamp.")
+	}
+	if toleranceDeltaRatio < 0 || toleranceDeltaRatio > 1 {
+		return fmt.Errorf("Tolerance ratio value should be setted between 0 to 1.")
 	}
 	// check arrays' length
 	if len(timestamps) != len(uptimeValues) {
@@ -69,8 +73,8 @@ func castSliceIntToInt64(vals []int) []int64 {
 }
 
 // NewUptimeSLACalculator returns the uptime calculator object.
-func NewUptimeSLACalculator(startTime, endTime int64, timestamps []int64, uptimeValues []int, exceptions []bool) (*UptimeSLACalculator, error) {
-	if err := checkArguments(startTime, endTime, timestamps, uptimeValues, exceptions); err != nil {
+func NewUptimeSLACalculator(startTime, endTime int64, timestamps []int64, uptimeValues []int, toleranceDeltaRatio float64, exceptions []bool) (*UptimeSLACalculator, error) {
+	if err := checkArguments(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio, exceptions); err != nil {
 		return nil, err
 	}
 	return &UptimeSLACalculator{
@@ -79,6 +83,7 @@ func NewUptimeSLACalculator(startTime, endTime int64, timestamps []int64, uptime
 		exceptions,
 		startTime,
 		endTime,
+		toleranceDeltaRatio,
 	}, nil
 }
 
@@ -120,7 +125,7 @@ func (u *UptimeSLACalculator) CalculateSNMPAvailability() float64 {
 	return float64(sumCountedVal) / float64(sumDeltaTimestamp)
 }
 
-func transformToSpreadedUptime(startTime, endTime int64, timestamps []int64, uptimeValues []int64) (deltaTimeStamps, countedVals []int64) {
+func transformToSpreadedUptime(startTime, endTime int64, timestamps []int64, uptimeValues []int64, toleranceDeltaRatio float64) (deltaTimeStamps, countedVals []int64) {
 	for i := range timestamps {
 		if i == 0 {
 			delta := timestamps[i] - startTime
@@ -146,7 +151,7 @@ func transformToSpreadedUptime(startTime, endTime int64, timestamps []int64, upt
 	}
 
 	for i := range deltaTimeStamps {
-		if countedVals[i] > deltaTimeStamps[i] {
+		if float64(countedVals[i])*toleranceDeltaRatio > float64(deltaTimeStamps[i]) {
 			for j := i; countedVals[j] > deltaTimeStamps[j]; j-- {
 				if j == 0 {
 					if countedVals[j] > deltaTimeStamps[j] {
@@ -170,7 +175,8 @@ func (u *UptimeSLACalculator) CalculateUptimeAvailability() float64 {
 	uptimeValues := u.uptimeValues
 	startTime := u.startTime
 	endTime := u.endTime
-	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues)
+	toleranceDeltaRatio := u.toleranceDeltaRatio
+	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio)
 	if delta := endTime - timestamps[len(timestamps)-1]; delta > 0 {
 		deltaTimeStamps = append(deltaTimeStamps, delta)
 		countedVals = append(countedVals, 0)
@@ -192,7 +198,8 @@ func (u *UptimeSLACalculator) CalculateSLA1Availability() float64 {
 	uptimeValues := u.uptimeValues
 	startTime := u.startTime
 	endTime := u.endTime
-	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues)
+	toleranceDeltaRatio := u.toleranceDeltaRatio
+	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio)
 	open := true
 	for i := range timestamps {
 		if open && uptimeValues[i] > 0 {
@@ -236,7 +243,8 @@ func (u *UptimeSLACalculator) CalculateSLA2Availability() float64 {
 	exceptions := u.exceptions
 	startTime := u.startTime
 	endTime := u.endTime
-	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues)
+	toleranceDeltaRatio := u.toleranceDeltaRatio
+	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio)
 	open := true
 	for i := range timestamps {
 		if exceptions[i] {
@@ -287,7 +295,8 @@ func (u *UptimeSLACalculator) GetUptimeStateSeriesData() []string {
 	uptimeValues := u.uptimeValues
 	startTime := u.startTime
 	endTime := u.endTime
-	_, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues)
+	toleranceDeltaRatio := u.toleranceDeltaRatio
+	_, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio)
 	// Create States Array
 	states := []string{}
 	for i := range countedVals {

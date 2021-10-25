@@ -20,8 +20,9 @@ type UptimeData struct {
 }
 
 var (
-	startTime int64 = 10000
-	endTime   int64 = 13000
+	startTime           int64   = 10000
+	endTime             int64   = 13000
+	toleranceDeltaRatio float64 = 0.9
 )
 
 var uptimeSeriesData = []UptimeData{
@@ -146,7 +147,7 @@ func TestUptimeSLACalculator(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -214,7 +215,7 @@ func TestUptimeSLACalculator(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -244,7 +245,7 @@ func TestUptimeSLACalculator(t *testing.T) {
 		})
 		t.Run("CalculateSLA2Availability: All Down with Exception", func(t *testing.T) {
 			exceptions[len(exceptions)-1] = true
-			calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+			calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 			if err != nil {
 				t.Fatalf("An Error should not be accoured: %v", err)
 			}
@@ -257,7 +258,7 @@ func TestUptimeSLACalculator(t *testing.T) {
 		t.Run("CalculateSLA2Availability: All Down with Exception 2", func(t *testing.T) {
 			exceptions[len(exceptions)-1] = false
 			exceptions[0] = true
-			calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+			calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 			if err != nil {
 				t.Fatalf("An Error should not be accoured: %v", err)
 			}
@@ -307,7 +308,7 @@ func TestUptimeSLACalculator(t *testing.T) {
 			timestamps = append(timestamps, val.Timestamp)
 			exceptions = append(exceptions, val.Exception)
 		}
-		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+		calc, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 		if err != nil {
 			t.Fatalf("An Error should not be accoured: %v", err)
 		}
@@ -377,50 +378,56 @@ func TestUptimeSLACalculator(t *testing.T) {
 			exceptions = append(exceptions, val.Exception)
 		}
 		t.Run("Start Time is (-)", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(-1, endTime, timestamps, uptimeVals, exceptions)
+			_, err := slacalc.NewUptimeSLACalculator(-1, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Timestamp length unmatches to uptime length", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps[:len(timestamps)-2], uptimeVals, exceptions)
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps[:len(timestamps)-2], uptimeVals, toleranceDeltaRatio, exceptions)
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Uptime length unmatches to timestamp  length", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals[:len(timestamps)-2], exceptions)
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals[:len(timestamps)-2], toleranceDeltaRatio, exceptions)
+			if err == nil {
+				t.Fatalf("Error should be occured.")
+			}
+		})
+		t.Run("Tolerance Delta Ratio is not between 0 to 1", func(t *testing.T) {
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, -1, exceptions)
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("SLA 2 Nil Exception", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions[:len(exceptions)-2])
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions[:len(exceptions)-2])
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Older Start Time", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(timestamps[0]+1, endTime, timestamps, uptimeVals, exceptions[:len(exceptions)-2])
+			_, err := slacalc.NewUptimeSLACalculator(timestamps[0]+1, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions[:len(exceptions)-2])
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Earlier End Time", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(startTime, timestamps[len(timestamps)-1]-1, timestamps, uptimeVals, exceptions[:len(exceptions)-2])
+			_, err := slacalc.NewUptimeSLACalculator(startTime, timestamps[len(timestamps)-1]-1, timestamps, uptimeVals, toleranceDeltaRatio, exceptions[:len(exceptions)-2])
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Nil Timestamp", func(t *testing.T) {
-			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, nil, uptimeVals, exceptions[:len(exceptions)-2])
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, nil, uptimeVals, toleranceDeltaRatio, exceptions[:len(exceptions)-2])
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
 		})
 		t.Run("Unordered Timestamp", func(t *testing.T) {
 			timestamps[0], timestamps[len(timestamps)-1] = timestamps[len(timestamps)-1], timestamps[0]
-			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, exceptions)
+			_, err := slacalc.NewUptimeSLACalculator(startTime, endTime, timestamps, uptimeVals, toleranceDeltaRatio, exceptions)
 			if err == nil {
 				t.Fatalf("Error should be occured.")
 			}
