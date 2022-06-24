@@ -314,3 +314,26 @@ func (u *UptimeSLACalculator) GetUptimeStateSeriesData() []string {
 	}
 	return states
 }
+
+// GetTotalUptimeAndDowntime returns the total uptime and downtime value based on
+// the uptime calculation performed in CalculateUptimeAvailability.
+func (u *UptimeSLACalculator) GetTotalUptimeAndDowntime() (uptime, downtime int64) {
+	timestamps := u.timestamps
+	uptimeValues := u.uptimeValues
+	startTime := u.startTime
+	endTime := u.endTime
+	toleranceDeltaRatio := u.toleranceDeltaRatio
+	deltaTimeStamps, countedVals := transformToSpreadedUptime(startTime, endTime, timestamps, uptimeValues, toleranceDeltaRatio)
+	if delta := endTime - timestamps[len(timestamps)-1]; delta > 0 {
+		deltaTimeStamps = append(deltaTimeStamps, delta)
+		countedVals = append(countedVals, 0)
+	}
+	var sumCountedVal, sumDeltaTimestamp int64
+	for i := range countedVals {
+		sumCountedVal += countedVals[i]
+		sumDeltaTimestamp += deltaTimeStamps[i]
+	}
+	uptime = sumCountedVal
+	downtime = sumDeltaTimestamp - uptime
+	return uptime, downtime
+}

@@ -204,6 +204,12 @@ func TestUptimeSLACalculator(t *testing.T) {
 				t.Errorf("The amount of OPEN state is %v instead of 3", stateLen["open"])
 			}
 		})
+		t.Run("GetTotalUptimeAndDowntime", func(t *testing.T) {
+			uptime, downtime := calc.GetTotalUptimeAndDowntime()
+			if math.Abs((float64(uptime)/float64(uptime+downtime))-expetedUptimeAvailability) >= ACCURACY {
+				t.Errorf("The calculated Uptime Availability value is %v, instead of %v", float64(uptime)/float64(uptime+downtime), expetedUptimeAvailability)
+			}
+		})
 	}
 
 	{
@@ -297,6 +303,12 @@ func TestUptimeSLACalculator(t *testing.T) {
 				t.Errorf("The amount of OPEN state is %v instead of 30", stateLen["open"])
 			}
 		})
+		t.Run("GetTotalUptimeAndDowntime", func(t *testing.T) {
+			uptime, downtime := calc.GetTotalUptimeAndDowntime()
+			if math.Abs((float64(uptime)/float64(uptime+downtime))-expectedAllDown) >= ACCURACY {
+				t.Errorf("The calculated Uptime Availability value is %v, instead of %v", float64(uptime)/float64(uptime+downtime), expectedAllDown)
+			}
+		})
 	}
 
 	{
@@ -363,6 +375,12 @@ func TestUptimeSLACalculator(t *testing.T) {
 			}
 			if stateLen["open"] != 0 {
 				t.Errorf("The amount of OPEN state is %v instead of 0", stateLen["open"])
+			}
+		})
+		t.Run("GetTotalUptimeAndDowntime", func(t *testing.T) {
+			uptime, downtime := calc.GetTotalUptimeAndDowntime()
+			if math.Abs((float64(uptime)/float64(uptime+downtime))-expectedAllUp) >= ACCURACY {
+				t.Errorf("The calculated Uptime Availability value is %v, instead of %v", float64(uptime)/float64(uptime+downtime), expectedAllUp)
 			}
 		})
 	}
